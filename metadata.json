@@ -1,0 +1,6 @@
+{
+  "name": "GuardianEye",
+  "description": "GuardianEye is a secure, real-time parental control system featuring screen and camera streaming, audio recording, and remote control capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
