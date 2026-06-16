@@ -45,7 +45,6 @@ import com.example.ui.components.ScreenTimePanel
 import com.example.ui.components.WebSafetyPanel
 import com.example.ui.components.SocialMonitorPanel
 import com.example.ui.components.LocationRadarPanel
-import com.example.ui.components.AdvancedSentinelPanel
 import org.json.JSONObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -337,14 +336,6 @@ fun DashboardScreen(
                     selectedContentColor = ElectricBlue,
                     unselectedContentColor = TextSecondary
                 )
-                Tab(
-                    selected = activeTab == 5,
-                    onClick = { activeTab = 5 },
-                    text = { Text("Sentinel Ops", fontSize = 11.sp, fontWeight = FontWeight.SemiBold) },
-                    icon = { Icon(Icons.Default.ToggleOn, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    selectedContentColor = ElectricBlue,
-                    unselectedContentColor = TextSecondary
-                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -518,9 +509,6 @@ fun DashboardScreen(
                             isUninstallLocked = isUninstallProtectionEnabled,
                             onUninstallLockedChange = { isUninstallProtectionEnabled = it }
                         )
-                    }
-                    5 -> {
-                        AdvancedSentinelPanel()
                     }
                 }
             }
