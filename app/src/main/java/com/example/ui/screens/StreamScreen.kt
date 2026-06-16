@@ -7,6 +7,7 @@ import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.util.Log
@@ -420,6 +421,15 @@ fun ChildSetupAndStreamView(
     onNavigateBack: () -> Unit
 ) {
     var isBroadcasting by remember { mutableStateOf(false) }
+    var isBatteryExempt by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        while (true) {
+            isBatteryExempt = pm.isIgnoringBatteryOptimizations(context.packageName)
+            delay(1000)
+        }
+    }
 
     // Media projection projection launcher setup
     val mediaProjectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -634,6 +644,31 @@ fun ChildSetupAndStreamView(
                             }
                         }
 
+                        HorizontalDivider(color = NavySurface2, modifier = Modifier.padding(vertical = 12.dp))
+
+                        // Battery Optimization Exemption Custom Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Background Stability", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 15.sp)
+                                Text("Ignore battery optimizations for 24/7 run", color = TextSecondary, fontSize = 11.sp)
+                            }
+                            if (isBatteryExempt) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = EmeraldGreen, modifier = Modifier.size(24.dp))
+                            } else {
+                                Button(
+                                    onClick = { launchBatterySettingsInStream(context) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = NavySurface2),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Exempt", fontSize = 12.sp, color = ElectricBlue, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(28.dp))
 
                         // START BROADCAST CTA BUTTON (Requires projection screen)
@@ -650,6 +685,11 @@ fun ChildSetupAndStreamView(
                                 }
                                 if (!RemoteControlAccessibilityService.isActive()) {
                                     Toast.makeText(context, "Please enable GuardianEye Accessibility Service.", Toast.LENGTH_LONG).show()
+                                    return@GradientButton
+                                }
+                                if (!isBatteryExempt) {
+                                    Toast.makeText(context, "Please exclude GuardianEye from Battery Optimizations.", Toast.LENGTH_LONG).show()
+                                    launchBatterySettingsInStream(context)
                                     return@GradientButton
                                 }
 
@@ -686,6 +726,22 @@ fun ChildSetupAndStreamView(
                     letterSpacing = 0.75.sp
                 )
             }
+        }
+    }
+}
+
+private fun launchBatterySettingsInStream(context: Context) {
+    try {
+        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:${context.packageName}")
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        try {
+            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+            context.startActivity(intent)
+        } catch (ex: Exception) {
+            Toast.makeText(context, "Please disable battery optimization manually", Toast.LENGTH_LONG).show()
         }
     }
 }
